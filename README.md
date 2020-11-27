@@ -125,14 +125,70 @@ router.get('/get', function (req, res, next) {
 本节演练结束，有兴趣深入学习，可参考：
 - ioredis: https://www.npmjs.com/package/ioredis
 
-## step：docker-compose运行起来（配置式）
+## step4：docker-compose运行起来（配置式）
+> 本节演示通过docker-compose配置文件，将server和redis整体进行一体化运行。
+
+1、添加docker-compose.yml配置文件
+```
+version: "3.8"
+services:
+  app:
+    env_file:
+      - app.${ENV}.env
+    build:
+      context: .
+      labels:
+        - "app=demo"
+    image: demo-docker:v1
+    networks:
+      - backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "redis"
+  redis:
+    image: redis:latest
+    networks:
+      backend:
+        aliases:
+          - "demo-redis"
+
+networks:
+  backend:
+```
+
+2、添加上面配置文件需要的环境变量支持
+- 添加`app.prd.env`，配置文件中依赖加载的环境变量文件，会注入到构建的镜像中
+```
+ENV=prd
+XXX=YYY
+```
+- 添加`.env`，docker-compose up时会自动加载该文件中环境变量
+```
+ENV=prd
+```
+
+3、执行下面命令运行起来
+```
+docker-compose up
+```
+
+4、访问下面API操作redis
+- 设置值：http://localhost:3000/set?key=kkk&val=vvv
+- 获取值：http://localhost:3000/get?key=kkk
+- 获取环境变量：http://localhost:3000/env
+
+---
+
+本节演练结束，有兴趣深入学习，可参考：
+- docker-compose cmd: https://docs.docker.com/compose/reference/overview/
+- docker-compose file: https://docs.docker.com/compose/compose-file/
+
+## step5：docker swarm运行起来（指令式）
 
 
-## step：docker swarm运行起来（指令式）
+## step6：docker stack运行起来（配置式）
 
 
-## step：docker stack运行起来（配置式）
-
-
-## step：k8s运行起来（配置式）
+## step7：k8s运行起来（配置式）
 

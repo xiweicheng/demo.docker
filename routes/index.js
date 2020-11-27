@@ -8,6 +8,18 @@ router.get('/', function (req, res, next) {
 
 });
 
+// 获取环境变量
+router.get('/env', function (req, res, next) {
+
+  res.json({
+    success: true,
+    action: 'env',
+    env: process.env.ENV,
+    data: process.env
+  });
+
+});
+
 // =================================================
 
 var Redis = require("ioredis");
@@ -21,6 +33,7 @@ router.get('/set', function (req, res, next) {
   res.json({
     success: true,
     action: 'set',
+    env: process.env.ENV,
     data: {
       [req.query.key]: req.query.val
     }
@@ -33,12 +46,15 @@ router.get('/get', function (req, res, next) {
     if (err) {
       res.json({
         success: false,
+        action: 'get',
+        env: process.env.ENV,
         data: err
       });
     } else {
       res.json({
         success: true,
         action: 'get',
+        env: process.env.ENV,
         data: {
           [req.query.key]: result
         }

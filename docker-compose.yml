@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  app:
+    env_file:
+      - app.${ENV}.env
+    build:
+      context: .
+      labels:
+        - "app=demo"
+    image: demo-docker:v1
+    networks:
+      - backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "redis"
+  redis:
+    image: redis:latest
+    networks:
+      backend:
+        aliases:
+          - "demo-redis"
+
+networks:
+  backend:
