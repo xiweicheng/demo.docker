@@ -1,4 +1,5 @@
 # demo.docker
+> 下面教程分步骤演示如何将项目用容器化方式运行起来，重在演示，抛砖引玉，不过多深入。
 
 ## step1：本地运行简单server
 > 本节使用的是极简单的express node server，仅供演练；运行成功，通过浏览器访问会看到一句欢迎语。
@@ -66,3 +67,72 @@ docker run --rm -p 3000:3000 demo-docker:v1
 - docker: https://docs.docker.com/
 - Dockerfile: https://docs.docker.com/engine/reference/builder/
 - docker cmd: https://docs.docker.com/engine/reference/run/
+
+## step3：让server访问redis
+> 本节演示添加针对redis的访问，包括向redis设置值和从redis取值；为下一节docker-compose演示做准备。
+
+1、添加操作redis依赖的客户端库
+```
+cnpm install ioredis --save
+```
+
+2、添加代码（在index.js中）
+```
+var Redis = require("ioredis");
+// 环境变量支持
+var addr = process.env.ENV == 'prd' ? "demo-redis" : "localhost";
+var redisClient = new Redis(6379, addr);
+
+// redis set
+router.get('/set', function (req, res, next) {
+  redisClient.set(req.query.key, req.query.val);
+  res.json({
+    success: true,
+    action: 'set',
+    data: {
+      [req.query.key]: req.query.val
+    }
+  });
+});
+
+// redis get
+router.get('/get', function (req, res, next) {
+  redisClient.get(req.query.key, function (err, result) {
+    if (err) {
+      res.json({
+        success: false,
+        data: err
+      });
+    } else {
+      res.json({
+        success: true,
+        action: 'get',
+        data: {
+          [req.query.key]: result
+        }
+      });
+    }
+  });
+});
+```
+
+3、执行`npm start`运行起来，访问下面API操作redis
+- 设置值：http://localhost:3000/set?key=kkk&val=vvv
+- 获取值：http://localhost:3000/get?key=kkk
+
+---
+
+本节演练结束，有兴趣深入学习，可参考：
+- ioredis: https://www.npmjs.com/package/ioredis
+
+## step：docker-compose运行起来（配置式）
+
+
+## step：docker swarm运行起来（指令式）
+
+
+## step：docker stack运行起来（配置式）
+
+
+## step：k8s运行起来（配置式）
+
