@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-k8s
+  namespace: default
+  labels:
+    app: demo
+spec:
+  selector:
+    matchLabels:
+      app: demo
+      release: v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: demo
+        release: v1
+    spec:
+      containers:
+        - name: demo-redis
+          image: redis:v2
+          ports:
+            - containerPort: 6379
+        - name: demo-app
+          image: demo-docker:v2
+          ports:
+            - containerPort: 3000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-svc
+  namespace: default
+  labels:
+    app: demo
+spec:
+  type: NodePort
+  ports:
+    - port: 9000
+      targetPort: 3000
+      nodePort: 30088
+  selector:
+    app: demo
