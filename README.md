@@ -301,4 +301,96 @@ docker stack deploy -c app-stack.yml demo
 - docker stack cmd: https://docs.docker.com/engine/reference/commandline/stack/
 
 ## step7：k8s运行起来（配置式）
+> 本机简单演示在k8s中运行服务。
 
+1、添加k8s配置文件：`app-k8s.yaml`
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-k8s
+  namespace: default
+  labels:
+    app: demo
+spec:
+  selector:
+    matchLabels:
+      app: demo
+      release: v1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: demo
+        release: v1
+    spec:
+      containers:
+        - name: demo-redis
+          image: redis:v2
+          ports:
+            - containerPort: 6379
+        - name: demo-app
+          image: demo-docker:v2
+          ports:
+            - containerPort: 3000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-svc
+  namespace: default
+  labels:
+    app: demo
+spec:
+  type: NodePort
+  ports:
+    - port: 9000
+      targetPort: 3000
+      nodePort: 30088
+  selector:
+    app: demo
+
+```
+
+2、启动minikube，准备k8s集群环境
+```
+minikube start
+```
+
+3、通过缓存向k8s集群缓存使用到的镜像，加快启动速度
+```
+minikube cache add demo-docker:latest
+minikube cache add redis:latest
+```
+
+4、可以进入k8s节点查看
+```
+minikube ssh & docker images
+```
+
+5、应用k8s配置，将服务运行起来
+```
+kubectl apply -f app-k8s.yaml
+```
+
+6、访问服务
+```
+minikube service app-svc
+```
+
+7、停止minikube环境
+```
+minikube stop
+```
+
+---
+
+本节演练结束，有兴趣深入学习，可参考：
+- minikube: https://minikube.sigs.k8s.io/docs/
+- k8s: https://kubernetes.io/
+- k8s kubectl cmd: https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#apply
+
+---
+
+> 容器化实战演练结束，谢谢！
