@@ -1,4 +1,4 @@
-# demo.docker
+# 容器化实战演练（demo.docker）
 > 下面教程分步骤演示如何将项目用容器化方式运行起来，重在演示，抛砖引玉，不过多深入。
 
 ## step1：本地运行简单server
@@ -185,7 +185,62 @@ docker-compose up
 - docker-compose file: https://docs.docker.com/compose/compose-file/
 
 ## step5：docker swarm运行起来（指令式）
+> 本机演练通过指令在swarm集群中运行服务，包括扩缩容。
 
+1、自己构建一个镜像备用
+```
+docker build -t demo-docker .
+```
+
+2、初始化swarm集群模式
+> 如果先前已经加入过，可以先离开：`docker swarm leave -f`
+
+```
+docker swarm init
+```
+
+3、创建一个网络
+```
+docker network create -d overlay demo
+```
+```
+docker network ls
+```
+
+4、创建一个**demo-redis**服务
+```
+docker service create --name demo-redis --network demo redis:latest
+```
+```
+docker service ls
+```
+
+5、基于第一步构建的镜像创建一个**demo-docker**服务
+```
+docker service create --name demo-app -p 9000:3000 -e ENV=prd --network demo demo-docker:latest
+```
+```
+docker service ls
+```
+
+6、访问下面API操作redis
+- 设置值：http://localhost:9000/set?key=kkk&val=vvv
+- 获取值：http://localhost:9000/get?key=kkk
+- 获取环境变量：http://localhost:9000/env
+
+7、扩容
+```
+docker service scale demo-redis=2
+```
+```
+docker service ls
+```
+
+---
+
+本节演练结束，有兴趣深入学习，可参考：
+- docker swarm cmd: https://docs.docker.com/engine/swarm/
+- docker service cmd: https://docs.docker.com/engine/reference/commandline/service/
 
 ## step6：docker stack运行起来（配置式）
 
