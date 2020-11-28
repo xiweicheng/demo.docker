@@ -243,7 +243,62 @@ docker service ls
 - docker service cmd: https://docs.docker.com/engine/reference/commandline/service/
 
 ## step6：docker stack运行起来（配置式）
+> 上节演示的是指令式运行服务，本节演示的是如何通过配置式运行服务。
 
+1、添加stack配置文件`app-stack.yml`
+```
+version: "3.8"
+services:
+  app:
+    env_file:
+      - app.prd.env
+    image: demo-docker:v1
+    networks:
+      - demo
+    ports:
+      - "9000:3000"
+    depends_on:
+      - "redis"
+  redis:
+    image: redis:latest
+    networks:
+      demo:
+        aliases:
+          - "demo-redis"
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+networks:
+  demo:
+```
+
+2、执行下面运行服务
+```
+docker stack deploy -c app-stack.yml demo
+```
+```
+docker stack services demo
+```
+
+3、访问下面API操作redis
+- 设置值：http://localhost:9000/set?key=kkk&val=vvv
+- 获取值：http://localhost:9000/get?key=kkk
+- 获取环境变量：http://localhost:9000/env
+
+4、调整配置`app-stack.yml`，更新服务
+```
+docker stack deploy -c app-stack.yml demo
+```
+
+---
+
+本节演练结束，有兴趣深入学习，可参考：
+- docker stack cmd: https://docs.docker.com/engine/reference/commandline/stack/
 
 ## step7：k8s运行起来（配置式）
 

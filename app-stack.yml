@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  app:
+    env_file:
+      - app.prd.env
+    image: demo-docker:v1
+    networks:
+      - demo
+    ports:
+      - "9000:3000"
+    depends_on:
+      - "redis"
+  redis:
+    image: redis:latest
+    networks:
+      demo:
+        aliases:
+          - "demo-redis"
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+networks:
+  demo:
